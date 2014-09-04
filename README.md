@@ -1,5 +1,4 @@
 # CotEditorThemeConverter
-=======================
 
 Command line tool to convert theme files for [CotEditor 2](https://github.com/coteditor/CotEditor), the open-sourced light-weight text editor for Mac OS X.
 
@@ -13,7 +12,7 @@ You can also download converted themes from [CotEditor-themes](https://github.co
 
 ### Binary use
 
-1. Download pre-compiled binary from [releases](./releases).
+1. Download pre-compiled binary from [releases](https://github.com/naotaka/CotEditorThemeConverter/releases).
 2. Unpack the downloaded archive.
 3. Copy the unpacked `CotEditorThemeConverter` file to your search path.
 
