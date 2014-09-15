@@ -1,5 +1,4 @@
 //
-//  main.swift
 //  CotEditorThemeConverter
 //
 // The MIT License (MIT)
@@ -74,12 +73,63 @@ let xcodeThemeKeys: [String] = [
 
 // MARK: Extensions
 
+/*
+* This extension was originally written by
+* NSColor+WFColorCode at https://github.com/1024jp/WFColorCode by 1024jp
+*/
+public enum WFColorCodeType {
+    case WFColorCodeInvalid   // nil
+    case WFColorCodeHex       // #ffffff
+    case WFColorCodeShortHex  // #fff
+    case WFColorCodeCSSRGB    // rgb(255,255,255)
+    case WFColorCodeCSSRGBa   // rgba(255,255,255,1)
+    case WFColorCodeCSSHSL    // hsl(0,0%,100%)
+    case WFColorCodeCSSHSLa   // hsla(0,0%,100%,1)
+}
+
 extension NSColor {
-    /*
-    * This extension was originally written by
-    * NSColor+M3Extensions at https://github.com/mcubedsw/M3AppKit by Martin Pilkington
-    */
-    
+    public func colorCodeWithType(codeType: WFColorCodeType) -> String? {
+        var code: String? = nil
+
+        let r: UInt8 = UInt8(roundf(Float(255 * self.redComponent)))
+        let g: UInt8 = UInt8(roundf(Float(255 * self.greenComponent)))
+        let b: UInt8 = UInt8(roundf(Float(255 * self.blueComponent)))
+        let alpha: Double = Double(self.alphaComponent)
+
+        switch codeType {
+        case .WFColorCodeHex:
+            code = String(format:"#%02x%02x%02x", r, g, b)
+        case .WFColorCodeShortHex:
+            // Not implemented
+            break
+        case .WFColorCodeCSSRGB:
+            // Not implemented
+            break
+        case .WFColorCodeCSSRGBa:
+            // Not implemented
+            break
+        case .WFColorCodeCSSHSL:
+            // Not implemented
+            break
+        case .WFColorCodeCSSHSLa:
+            // Not implemented
+            break
+        case .WFColorCodeInvalid:
+            break
+        default:
+            break
+        }
+
+        return code
+    }
+}
+
+
+/*
+* This extension was originally written by
+* NSColor+M3Extensions at https://github.com/mcubedsw/M3AppKit by Martin Pilkington
+*/
+extension NSColor {
     public func colorByAdjustingBrightness(brightness: CGFloat) -> NSColor {
         return NSColor(deviceHue: self.hueComponent, saturation: self.saturationComponent, brightness: self.brightnessComponent + brightness, alpha: self.alphaComponent)
     }
@@ -88,16 +138,14 @@ extension NSColor {
 
 // MARK: Functions
 
-func adjustColorBrightness(colorData: NSData) -> NSData {
-    let color: NSColor = NSUnarchiver.unarchiveObjectWithData(colorData) as NSColor
-
+func adjustColorBrightness(color: NSColor) -> NSColor {
     var brightness: CGFloat = 0.15
     
     if color.brightnessComponent > 0.5 {
         brightness *= -1
     }
     
-    return NSArchiver.archivedDataWithRootObject(color.colorByAdjustingBrightness(brightness))
+    return color.colorByAdjustingBrightness(brightness)
 }
 
 func loadThemeFile(filePath: String) -> NSDictionary? {
@@ -135,12 +183,11 @@ func loadThemeFile(filePath: String) -> NSDictionary? {
     return pList
 }
 
-func saveTheme(theme: Dictionary<String, NSData>, toPath path: String) -> Bool {
+func saveTheme(theme: Dictionary<String, AnyObject>, toPath path: String) -> Bool {
     var error: NSError?
-    let serializedData: NSData? = NSPropertyListSerialization.dataWithPropertyList(
+    let serializedData: NSData? = NSJSONSerialization.dataWithJSONObject(
         theme,
-        format: NSPropertyListFormat.XMLFormat_v1_0,
-        options: 0,
+        options: NSJSONWritingOptions.PrettyPrinted,
         error: &error)
     
     if serializedData == nil {
@@ -152,7 +199,7 @@ func saveTheme(theme: Dictionary<String, NSData>, toPath path: String) -> Bool {
     return serializedData!.writeToFile(destinationPath, atomically: true)
 }
 
-func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String, NSData>? {
+func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String, AnyObject>? {
     let syntaxColors = xcodeTheme["DVTSourceTextSyntaxColors"] as? [String:NSString]
     
     if syntaxColors == nil {
@@ -160,7 +207,8 @@ func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String
         return nil
     }
     
-    var newTheme = [String:NSData]()
+    var newTheme = [String:AnyObject]()
+    newTheme["usesSystemSelectionColor"] = false
     
     for (index, key) in enumerate(cotEditorThemeKeys) {
         var xcodeKey = xcodeThemeKeys[index]
@@ -179,23 +227,29 @@ func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String
         }
         
         let colorString: NSString = source[xcodeKey] as NSString
-        var colorData: NSData? = convertColorStringToColorData(colorString)
+        let color = convertColorStringToColor(colorString)
         
-        if colorData == nil {
+        if color == nil {
             return nil
         }
+        
+        var hexColorCode = color!.colorCodeWithType(WFColorCodeType.WFColorCodeHex)
 
-        if key == "lineHighlightColor" {
-            colorData = adjustColorBrightness(colorData!)
+        if hexColorCode == nil {
+            return nil
         }
         
-        newTheme[key] = colorData
+        if key == "lineHighlightColor" {
+            hexColorCode = adjustColorBrightness(color!).colorCodeWithType(WFColorCodeType.WFColorCodeHex)
+        }
+        
+        newTheme[key] = hexColorCode
     }
     
     return newTheme
 }
 
-func convertColorStringToColorData(colorString: NSString) -> NSData? {
+func convertColorStringToColor(colorString: NSString) -> NSColor? {
     let channelValues = colorString.componentsSeparatedByString(" ") as [NSString]
     
     var rgba: [CGFloat] = channelValues.map({
@@ -217,7 +271,7 @@ func convertColorStringToColorData(colorString: NSString) -> NSData? {
     
     let color = NSColor(red: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3])
     
-    return NSArchiver.archivedDataWithRootObject(color);
+    return color
 }
 
 func setupOutputFolder() -> String? {
