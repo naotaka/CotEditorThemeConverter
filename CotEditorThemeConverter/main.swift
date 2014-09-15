@@ -159,8 +159,8 @@ func loadThemeFile(filePath: String) -> NSDictionary? {
         return nil
     }
     
-    let data: NSData? = NSData.dataWithContentsOfFile(
-        themePath,
+    let data: NSData? = NSData(
+        contentsOfFile: themePath,
         options: NSDataReadingOptions.DataReadingUncached,
         error: &error)
     
