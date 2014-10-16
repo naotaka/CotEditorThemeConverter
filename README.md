@@ -30,10 +30,10 @@ After conversion, you can see converted themes in newly created `Converted Theme
 $ CotEditorThemeConverter <xcode-theme>
 ```
 
-### REPL use on Mac OS X 10.9
+### Use with Xcode 6 on Mac OS X 10.9
 
 ```bash
-$ /Applications/Xcode6-Beta7.app/Contents/Developer/usr/bin/xcrun swift -sdk /Applications/Xcode6-Beta7.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk -target x86_64-apple-macosx10.9 </path/to/CotEditorThemeConverter/main.swift> <xcode-theme>
+$ /Applications/Xcode/Contents/Developer/usr/bin/xcrun swift -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk -target x86_64-apple-macosx10.9 </path/to/CotEditorThemeConverter/main.swift> <xcode-theme>
 ```
 
 ## License
