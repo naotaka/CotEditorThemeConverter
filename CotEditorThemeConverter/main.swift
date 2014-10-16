@@ -89,12 +89,12 @@ public enum WFColorCodeType {
 
 extension NSColor {
     public func colorCodeWithType(codeType: WFColorCodeType) -> String? {
-        var code: String? = nil
+        var code: String?
 
-        let r: UInt8 = UInt8(roundf(Float(255 * self.redComponent)))
-        let g: UInt8 = UInt8(roundf(Float(255 * self.greenComponent)))
-        let b: UInt8 = UInt8(roundf(Float(255 * self.blueComponent)))
-        let alpha: Double = Double(self.alphaComponent)
+        let r = UInt8(roundf(Float(255 * self.redComponent)))
+        let g = UInt8(roundf(Float(255 * self.greenComponent)))
+        let b = UInt8(roundf(Float(255 * self.blueComponent)))
+        let alpha = Double(self.alphaComponent)
 
         switch codeType {
         case .WFColorCodeHex:
@@ -183,7 +183,7 @@ func loadThemeFile(filePath: String) -> NSDictionary? {
     return pList
 }
 
-func saveTheme(theme: Dictionary<String, AnyObject>, toPath path: String) -> Bool {
+func saveTheme(theme: [String: AnyObject], toPath path: String) -> Bool {
     var error: NSError?
     let serializedData: NSData? = NSJSONSerialization.dataWithJSONObject(
         theme,
@@ -199,7 +199,7 @@ func saveTheme(theme: Dictionary<String, AnyObject>, toPath path: String) -> Boo
     return serializedData!.writeToFile(destinationPath, atomically: true)
 }
 
-func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String, AnyObject>? {
+func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> [String: AnyObject]? {
     let syntaxColors = xcodeTheme["DVTSourceTextSyntaxColors"] as? [String:NSString]
     
     if syntaxColors == nil {
@@ -226,7 +226,7 @@ func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> Dictionary<String
             return nil
         }
         
-        let colorString: NSString = source[xcodeKey] as NSString
+        let colorString = source[xcodeKey] as NSString
         let color = convertColorStringToColor(colorString)
         
         if color == nil {
