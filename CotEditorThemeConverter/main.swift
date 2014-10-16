@@ -34,22 +34,22 @@ let xcodeThemeExtension = "dvtcolortheme"
 // MARK: Theme keys
 
 let cotEditorThemeKeys: [String] = [
-    "attributesColor",
-    "backgroundColor",
-    "charactersColor",
-    "commandsColor",
-    "commentsColor",
-    "insertionPointColor",
-    "invisiblesColor",
-    "keywordsColor",
-    "lineHighlightColor",
-    "numbersColor",
-    "selectionColor",
-    "stringsColor",
-    "textColor",
-    "typesColor",
-    "valuesColor",
-    "variablesColor",
+    "attributes",
+    "background",
+    "characters",
+    "commands",
+    "comments",
+    "insertionPoint",
+    "invisibles",
+    "keywords",
+    "lineHighlight",
+    "numbers",
+    "selection",
+    "strings",
+    "text",
+    "types",
+    "values",
+    "variables",
 ]
 
 let xcodeThemeKeys: [String] = [
@@ -207,9 +207,9 @@ func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> [String: AnyObjec
         return nil
     }
     
-    var newTheme = [String:AnyObject]()
-    newTheme["usesSystemSelectionColor"] = false
-    
+    var newTheme = [String:[String:AnyObject]]()
+//    newTheme["usesSystemSelectionColor"] = false
+
     for (index, key) in enumerate(cotEditorThemeKeys) {
         var xcodeKey = xcodeThemeKeys[index]
         var source = xcodeTheme
@@ -242,8 +242,15 @@ func convertXcodeThemeToCotEditor(xcodeTheme: NSDictionary) -> [String: AnyObjec
         if key == "lineHighlightColor" {
             hexColorCode = adjustColorBrightness(color!).colorCodeWithType(WFColorCodeType.WFColorCodeHex)
         }
-        
-        newTheme[key] = hexColorCode
+
+        if let colorCode = hexColorCode as String! {
+            var colorDict: [String: AnyObject] = ["color": colorCode]
+
+            if key == "selection" {
+                colorDict["usesSystemSetting"] = false
+            }
+            newTheme[key] = colorDict
+        }
     }
     
     return newTheme
